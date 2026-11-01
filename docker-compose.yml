@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - sommelier-db:/var/lib/sommelier
+    restart: unless-stopped
+
+volumes:
+  sommelier-db:

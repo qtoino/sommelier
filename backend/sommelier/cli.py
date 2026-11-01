@@ -72,11 +72,18 @@ def verify_cmd() -> None:
 
 
 @app.command("import")
-def import_cmd(path: Path) -> None:
-    """Load items from a JSONL file (upsert by id)."""
+def import_cmd(
+    paths: list[Path],
+    if_empty: Annotated[bool, typer.Option(help="Do nothing if the DB has items")] = False,
+) -> None:
+    """Load items from JSONL files (upsert by id)."""
     with Session(engine) as session:
-        created, updated = import_items(session, read_jsonl(path))
-    typer.echo(f"created {created}, updated {updated}")
+        if if_empty and session.exec(select(Item.id)).first():
+            typer.echo("database already has items; skipped")
+            return
+        for path in paths:
+            created, updated = import_items(session, read_jsonl(path))
+            typer.echo(f"{path}: created {created}, updated {updated}")
 
 
 @app.command("export")

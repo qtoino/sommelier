@@ -24,10 +24,10 @@ fmt:
 # load hand-written fixtures into the DB
 seed:
     uv run python -m alembic upgrade head
-    uv run python -m sommelier import fixtures/seed.jsonl
+    uv run python -m sommelier import fixtures/seed.jsonl data/items.jsonl
 
 # browser smoke test of the core loop
 e2e:
     cd frontend; npm run build
-    uv run playwright install chromium
+    uv run python -m playwright install chromium
     uv run pytest -m e2e

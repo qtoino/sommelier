@@ -44,7 +44,7 @@ Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
 - [ ] Spot-check, reject weak items
 
 ## M8 Polish
-- [ ] Dockerfile + docker-compose
+- [x] Dockerfile + docker-compose
 - [ ] README
-- [ ] Playwright smoke test
+- [x] Playwright smoke test
 - [ ] STATUS.md
