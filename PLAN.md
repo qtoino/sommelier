@@ -16,14 +16,14 @@ Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
 - [x] Tests: randomization, server-side grading (incl. tradeoff rules), no-leak, reveal gating
 
 ## M3 Core loop UI
-- [ ] Side-by-side read-only panes, choice/confidence/reason, keyboard 1/2/3/Enter/N
-- [ ] Reveal: merge diff, explanation, tell, category, attribution, flag
-- [ ] Light/dark mode
+- [x] Side-by-side read-only panes, choice/confidence/reason, keyboard 1/2/3/Enter/N
+- [x] Reveal: merge diff, explanation, tell, category, attribution, flag
+- [x] Light/dark mode
 
 ## M4 Stats, review, filters
-- [ ] Stats page: overall, by category, by confidence, hedge rate, longer-baseline, history
-- [ ] Review mode (items last answered wrong)
-- [ ] Filters: category, source type, difficulty
+- [x] Stats page: overall, by category, by confidence, hedge rate, longer-baseline, history
+- [x] Review mode (items last answered wrong)
+- [x] Filters: category, source type, difficulty
 
 ## M5 Mining
 - [ ] Repo allowlist + license gate (GitHub API → LICENSE file fallback)

@@ -4,7 +4,7 @@ export PLAYWRIGHT_BROWSERS_PATH := justfile_directory() / ".playwright-browsers"
 
 # API on :8000 + Vite on :5173 (open http://localhost:5173)
 dev:
-    uv run alembic upgrade head
+    uv run python -m alembic upgrade head
     uv run python scripts/dev.py
 
 test:
@@ -23,8 +23,8 @@ fmt:
 
 # load hand-written fixtures into the DB
 seed:
-    uv run alembic upgrade head
-    uv run sommelier import fixtures/seed.jsonl
+    uv run python -m alembic upgrade head
+    uv run python -m sommelier import fixtures/seed.jsonl
 
 # browser smoke test of the core loop
 e2e:
