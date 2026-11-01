@@ -1,0 +1,50 @@
+# Plan
+
+Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
+
+## M1 Scaffold
+- [x] uv project (`backend/sommelier`), FastAPI app, health endpoint + test
+- [x] Vite + React + TS + Tailwind v4 + CodeMirror deps, Vitest
+- [x] justfile: dev / test / lint / fmt / seed / e2e
+- [x] ruff, mypy, pytest, oxlint + tsc
+
+## M2 Data model + seed
+- [ ] SQLModel models: Item, Attempt, ItemFlag (+ lines_good/lines_bad)
+- [ ] Alembic initial migration
+- [ ] JSONL import/export + `fixtures/seed.jsonl` (~10 items, ≥1 tradeoff)
+- [ ] API: GET /api/items/next, POST /api/attempts, GET /api/items/{id}/reveal, POST /api/items/{id}/flag, GET /api/stats
+- [ ] Tests: randomization, server-side grading (incl. tradeoff rules), no-leak, reveal gating
+
+## M3 Core loop UI
+- [ ] Side-by-side read-only panes, choice/confidence/reason, keyboard 1/2/3/Enter/N
+- [ ] Reveal: merge diff, explanation, tell, category, attribution, flag
+- [ ] Light/dark mode
+
+## M4 Stats, review, filters
+- [ ] Stats page: overall, by category, by confidence, hedge rate, longer-baseline, history
+- [ ] Review mode (items last answered wrong)
+- [ ] Filters: category, source type, difficulty
+
+## M5 Mining
+- [ ] Repo allowlist + license gate (GitHub API → LICENSE file fallback)
+- [ ] Candidates: BugsInPy commit list + fix-pattern regex
+- [ ] AST single-function extraction + filters
+- [ ] Leak scrubbing
+- [ ] LLM judge (claude -p, Pydantic-validated JSON), cache, budget cap, dry-run
+- [ ] Run on 2–3 repos, then broaden
+
+## M6 Synthetic
+- [ ] Seed topics per category
+- [ ] Generator (claude -p opus) with shape-balance instruction
+- [ ] Docker sandbox (subprocess fallback) for pytest verification
+- [ ] Critic (OpenRouter DeepSeek) for unverifiable items
+
+## M7 Dataset
+- [ ] 100+ active items, all 7 categories, ~10–15 tradeoffs, under quota guard
+- [ ] Spot-check, reject weak items
+
+## M8 Polish
+- [ ] Dockerfile + docker-compose
+- [ ] README
+- [ ] Playwright smoke test
+- [ ] STATUS.md
