@@ -9,7 +9,8 @@ from sommelier.db import engine
 from sommelier.io import export_items, import_items, read_jsonl
 from sommelier.llm import LLM, BudgetExceeded, UsageLimitHit
 from sommelier.mine import mine_repo
-from sommelier.models import Item
+from sommelier.models import CATEGORIES, Item
+from sommelier.synth import generate, reverify
 
 app = typer.Typer(help="Sommelier content pipeline. Never runs in the web request path.")
 
@@ -39,6 +40,35 @@ def mine_cmd(
             finally:
                 typer.echo(f"llm calls: {llm.calls} paid, {llm.cache_hits} cached")
     typer.echo(f"added {total} mined items")
+
+
+@app.command("generate")
+def generate_cmd(
+    category: Annotated[str | None, typer.Option(help="One of the 7 categories")] = None,
+    count: int = 5,
+    tradeoff: Annotated[bool, typer.Option(help="Generate 'It depends' items")] = False,
+    dry_run: bool = False,
+    max_calls: int | None = None,
+) -> None:
+    """Generate synthetic pairs, verified by a sandboxed test or an independent critic."""
+    if not tradeoff and category not in CATEGORIES:
+        raise typer.BadParameter(f"--category must be one of {', '.join(CATEGORIES)}")
+    llm = LLM(max_calls, dry_run)
+    with Session(engine) as session:
+        try:
+            added = generate(session, llm, category, count, tradeoff=tradeoff)
+        except (BudgetExceeded, UsageLimitHit) as e:
+            _stop(e)
+        finally:
+            typer.echo(f"llm calls: {llm.calls} paid, {llm.cache_hits} cached")
+    typer.echo(f"added {added} synthetic items")
+
+
+@app.command("verify")
+def verify_cmd() -> None:
+    """Re-run every synthetic item's test in the sandbox; failing items are rejected."""
+    with Session(engine) as session:
+        typer.echo(reverify(session))
 
 
 @app.command("import")

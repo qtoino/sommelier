@@ -35,7 +35,10 @@ packages = ["backend/sommelier"]
 
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
-markers = ["e2e: browser smoke test (needs built frontend + playwright browsers)"]
+markers = [
+    "e2e: browser smoke test (needs built frontend + playwright browsers)",
+    "docker: needs a running Docker daemon (skipped otherwise)",
+]
 addopts = "-m 'not e2e'"
 
 [tool.ruff]

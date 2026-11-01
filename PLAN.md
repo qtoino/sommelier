@@ -34,10 +34,10 @@ Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
 - [ ] Run on 2–3 repos, then broaden
 
 ## M6 Synthetic
-- [ ] Seed topics per category
-- [ ] Generator (claude -p opus) with shape-balance instruction
-- [ ] Docker sandbox (subprocess fallback) for pytest verification
-- [ ] Critic (OpenRouter DeepSeek) for unverifiable items
+- [x] Seed topics per category
+- [x] Generator (claude -p opus) with shape-balance instruction
+- [x] Docker sandbox (subprocess fallback) for pytest verification
+- [x] Critic (OpenRouter DeepSeek) for unverifiable items
 
 ## M7 Dataset
 - [ ] 100+ active items, all 7 categories, ~10–15 tradeoffs, under quota guard
