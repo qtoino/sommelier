@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 from sommelier.db import engine
 from sommelier.io import export_items, import_items, read_jsonl
 from sommelier.llm import LLM, BudgetExceeded, UsageLimitHit
-from sommelier.mine import mine_repo
+from sommelier.mine import mine_repo, scrub_pair
 from sommelier.models import CATEGORIES, Item
 from sommelier.synth import generate, reverify
 
@@ -40,6 +40,23 @@ def mine_cmd(
             finally:
                 typer.echo(f"llm calls: {llm.calls} paid, {llm.cache_hits} cached")
     typer.echo(f"added {total} mined items")
+
+
+@app.command("rescrub")
+def rescrub_cmd() -> None:
+    """Re-apply leak scrubbing to stored mined items (after the scrub rules change)."""
+    changed = 0
+    with Session(engine) as session:
+        for item in session.exec(select(Item).where(Item.source_type == "mined")).all():
+            bad, good = scrub_pair(item.version_bad, item.version_good)
+            if (bad, good) != (item.version_bad, item.version_good):
+                item.version_bad, item.version_good = bad, good
+                if bad.strip() == good.strip():
+                    item.status = "rejected"
+                session.add(item)
+                changed += 1
+        session.commit()
+    typer.echo(f"rescrubbed {changed} items")
 
 
 @app.command("generate")

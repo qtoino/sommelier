@@ -1,6 +1,7 @@
 """Synthetic pairs: generate with Claude, verify by running a test in a sandbox, or have an
 independent critic (different model family) re-judge blind when no test is possible."""
 
+import json
 import random
 import shutil
 import subprocess
@@ -120,6 +121,7 @@ TRADEOFF_TOPICS: list[tuple[str, str]] = [
     ("security", "per-request DB permission checks vs a cached permission set"),
 ]
 
+ATTEMPTED = Path(".cache/synth/attempted_topics.json")
 TESTED = {"correctness", "edge-case"}  # must ship a passing/failing test
 MAYBE_TESTED = {"security", "performance"}
 
@@ -349,9 +351,11 @@ def generate(
     else:
         assert category, "category is required unless --tradeoff"
         topics = [(category, t) for t in TOPICS[category]]
-    offset = sum(
-        1 for i in existing if i.is_tradeoff == tradeoff and category in (None, i.category)
-    )
+    # Untried topics first, so a topic the critic rejected isn't retried (and a kept one isn't
+    # generated twice) before the list is exhausted.
+    attempted = set(json.loads(ATTEMPTED.read_text())) if ATTEMPTED.exists() else set()
+    topics = [t for t in topics if t[1] not in attempted] + [t for t in topics if t[1] in attempted]
+    offset = len(existing)  # only drives the shorter/equal shape alternation
     use_docker = docker_ready()
     if not use_docker:
         log(
@@ -361,7 +365,11 @@ def generate(
     known_good = {i.version_good.strip() for i in existing}
     added = 0
     for n in range(count):
-        cat, topic = topics[(offset + n) % len(topics)]
+        cat, topic = topics[n % len(topics)]
+        if topic not in attempted and not llm.dry_run:
+            attempted.add(topic)
+            ATTEMPTED.parent.mkdir(parents=True, exist_ok=True)
+            ATTEMPTED.write_text(json.dumps(sorted(attempted)))
         avoid = [i.prompt for i in existing if i.category == cat]
         shorter_good = (offset + n) % 2 == 0
         prompt = gen_prompt(cat, topic, shorter_good=shorter_good, tradeoff=tradeoff, avoid=avoid)

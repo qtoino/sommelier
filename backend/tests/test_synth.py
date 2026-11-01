@@ -48,6 +48,7 @@ def _fake_llm(
 ) -> list[str]:
     monkeypatch.setattr(llm, "CACHE_DIR", tmp_path)
     monkeypatch.setattr(synth, "docker_ready", lambda: False)
+    monkeypatch.setattr(synth, "ATTEMPTED", tmp_path / "attempted.json")
     roles: list[str] = []
     generated = {
         "language": "python",

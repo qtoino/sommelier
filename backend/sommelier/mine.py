@@ -71,7 +71,10 @@ def gh_get(path: str) -> Any:
     headers = {"Accept": "application/vnd.github+json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
-    resp = httpx.get(f"https://api.github.com{path}", headers=headers, timeout=30)
+    # Renamed/transferred repos answer with a redirect.
+    resp = httpx.get(
+        f"https://api.github.com{path}", headers=headers, timeout=30, follow_redirects=True
+    )
     if resp.status_code == 404:
         return None
     resp.raise_for_status()
@@ -109,11 +112,12 @@ def repo_license(repo: str, clone: Path | None = None) -> str | None:
     if spdx and spdx not in ("NOASSERTION", "OTHER"):
         return str(spdx)
     if clone and clone.is_dir():
-        for path in sorted(clone.glob("LICEN[CS]E*")) + sorted(clone.glob("COPYING*")):
-            if path.is_file():
-                found = detect_license_text(path.read_text(encoding="utf-8", errors="replace"))
-                if found:
-                    return found
+        # Read from history, not the worktree: blobless clones are never checked out.
+        names = git(clone, "ls-tree", "--name-only", "HEAD").splitlines()
+        for name in sorted(n for n in names if re.match(r"(LICEN[CS]E|COPYING)", n, re.I)):
+            found = detect_license_text(git(clone, "show", f"HEAD:{name}"))
+            if found:
+                return found
     return None
 
 
@@ -143,8 +147,6 @@ def ensure_clone(repo: str) -> Path:
              f"https://github.com/{repo}.git", str(dest)],
             check=True,
         )  # fmt: skip
-        # LICENSE is needed for the fallback license check.
-        subprocess.run(["git", "checkout", "-q", "HEAD", "--", "."], cwd=dest, check=False)
     return dest
 
 
@@ -422,7 +424,26 @@ LEAK_RE = re.compile(
 _DIRECTIVE_RE = re.compile(r"^(\s*)\.\. (versionchanged|versionadded)::")
 
 
-def scrub(src: str) -> str:
+def comments(src: str) -> set[str]:
+    try:
+        toks = list(tokenize.generate_tokens(io.StringIO(src).readline))
+    except (tokenize.TokenError, IndentationError):
+        return set()
+    return {t.string.strip() for t in toks if t.type == tokenize.COMMENT}
+
+
+def scrub_pair(before: str, after: str) -> tuple[str, str]:
+    """Scrub both versions. A comment present in only one version is itself a tell (fixes
+    usually add one explaining themselves), so only comments shared by both survive."""
+    shared = comments(before) & comments(after)
+
+    def leaky(text: str) -> bool:
+        return text.strip() not in shared or bool(LEAK_RE.search(text))
+
+    return scrub(before, leaky), scrub(after, leaky)
+
+
+def scrub(src: str, leaky: Callable[[str], object] = LEAK_RE.search) -> str:
     """Drop comments that give the answer away, plus versionchanged/added docstring notes.
 
     Code is otherwise untouched. Comments are found with `tokenize`, so '#' inside strings
@@ -432,7 +453,7 @@ def scrub(src: str) -> str:
     cuts: dict[int, int] = {}  # 0-based line -> column where a leaky comment starts
     try:
         for tok in tokenize.generate_tokens(io.StringIO(src).readline):
-            if tok.type == tokenize.COMMENT and LEAK_RE.search(tok.string):
+            if tok.type == tokenize.COMMENT and leaky(tok.string):
                 cuts[tok.start[0] - 1] = tok.start[1]
     except (tokenize.TokenError, IndentationError):
         return src
@@ -611,7 +632,7 @@ def find_candidates(
                 json.dumps({"sha": sha, "path": path, "stage": "extract", "reason": ex}) + "\n"
             )
             continue
-        before, after = scrub(ex.before), scrub(ex.after)
+        before, after = scrub_pair(ex.before, ex.after)
         try:
             ast.parse(before), ast.parse(after)
         except SyntaxError:

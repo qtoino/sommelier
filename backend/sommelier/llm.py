@@ -122,20 +122,27 @@ def _call_openrouter(model: str, system: str, prompt: str) -> str:
     key = os.environ.get("OPENROUTER_API_KEY")
     if not key:
         raise LLMError("OPENROUTER_API_KEY is not set")
-    resp = httpx.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={"Authorization": f"Bearer {key}"},
-        json={
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt},
-            ],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.2,
-        },
-        timeout=300,
-    )
+    body = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.2,
+    }
+    # 429 here is usually a shared upstream provider being briefly throttled: back off and
+    # retry. 402 means no credit left: stop immediately.
+    for wait in (10, 30, 90, None):
+        resp = httpx.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {key}"},
+            json=body,
+            timeout=300,
+        )
+        if resp.status_code != 429 or wait is None:
+            break
+        time.sleep(wait)
     if resp.status_code in (402, 429):
         raise UsageLimitHit(f"openrouter {resp.status_code}: {resp.text[:300]}")
     resp.raise_for_status()

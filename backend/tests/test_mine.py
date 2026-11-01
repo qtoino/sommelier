@@ -95,6 +95,19 @@ def test_scrub_removes_leaky_comments_only() -> None:
     compile(out, "<scrubbed>", "exec")
 
 
+def test_scrub_pair_drops_comments_only_one_side_has() -> None:
+    before = "def f(xs):\n    # sum the inputs\n    return sum(xs)\n"
+    after = (
+        "def f(xs):\n    # sum the inputs\n"
+        "    xs = [x for x in xs if x]  # skip empties to avoid a crash\n"
+        "    # explain the change\n    return sum(xs)\n"
+    )
+    b, a = mine.scrub_pair(before, after)
+    assert b == before
+    assert "# sum the inputs" in a and "skip empties" not in a and "explain the change" not in a
+    assert "xs = [x for x in xs if x]\n" in a
+
+
 def test_license_text_detection() -> None:
     assert detect_license_text("Permission is hereby granted, free of charge, to any") == "MIT"
     bsd = "Redistribution and use in source and binary forms ... Neither the name of"
@@ -117,10 +130,19 @@ def test_license_gate(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         api(bad)
         assert not license_ok(repo_license("a/b"))
     api("NOASSERTION")
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "user.email", "t@t")
+    _git(tmp_path, "config", "user.name", "t")
+    (tmp_path / "README").write_text("hi")
+    _git(tmp_path, "add", ".")
+    _git(tmp_path, "commit", "-qm", "init")
     assert repo_license("a/b", tmp_path) is None  # unknown is rejected
     (tmp_path / "LICENSE.txt").write_text("Redistribution and use in source and binary forms")
+    _git(tmp_path, "add", ".")
+    _git(tmp_path, "commit", "-qm", "license")
     assert repo_license("a/b", tmp_path) == "BSD-2-Clause"
     (tmp_path / "LICENSE.txt").write_text("GNU LESSER GENERAL PUBLIC LICENSE")
+    _git(tmp_path, "commit", "-qam", "relicense")
     assert not license_ok(repo_license("a/b", tmp_path))
 
 
