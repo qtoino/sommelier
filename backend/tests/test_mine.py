@@ -108,6 +108,14 @@ def test_scrub_pair_drops_comments_only_one_side_has() -> None:
     assert "xs = [x for x in xs if x]\n" in a
 
 
+def test_scrub_pair_drops_docstrings_only_when_they_differ() -> None:
+    same = 'def f(x):\n    """Return x."""\n    return x\n'
+    assert mine.scrub_pair(same, same.replace("return x\n", "return x or 0\n"))[0] == same
+    b, a = mine.scrub_pair(same, 'def f(x):\n    """Return x, or 0."""\n    return x or 0\n')
+    assert b == "def f(x):\n    return x\n"
+    assert a == "def f(x):\n    return x or 0\n"
+
+
 def test_license_text_detection() -> None:
     assert detect_license_text("Permission is hereby granted, free of charge, to any") == "MIT"
     bsd = "Redistribution and use in source and binary forms ... Neither the name of"

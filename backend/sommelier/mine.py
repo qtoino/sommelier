@@ -440,7 +440,37 @@ def scrub_pair(before: str, after: str) -> tuple[str, str]:
     def leaky(text: str) -> bool:
         return text.strip() not in shared or bool(LEAK_RE.search(text))
 
-    return scrub(before, leaky), scrub(after, leaky)
+    before, after = scrub(before, leaky), scrub(after, leaky)
+    # Same idea for docstrings: a reworded docstring marks the newer version.
+    if _docstring(before) != _docstring(after):
+        before, after = _drop_docstring(before), _drop_docstring(after)
+    return before, after
+
+
+def _docstring_node(src: str) -> ast.Expr | None:
+    try:
+        fn = ast.parse(src).body[0]
+    except (SyntaxError, IndexError):
+        return None
+    if not isinstance(fn, ast.FunctionDef | ast.AsyncFunctionDef) or len(fn.body) < 2:
+        return None
+    first = fn.body[0]
+    if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):
+        return first if isinstance(first.value.value, str) else None
+    return None
+
+
+def _docstring(src: str) -> str | None:
+    node = _docstring_node(src)
+    return ast.get_docstring(ast.parse(src).body[0], clean=False) if node else None  # type: ignore[arg-type]
+
+
+def _drop_docstring(src: str) -> str:
+    node = _docstring_node(src)
+    if node is None or node.end_lineno is None:
+        return src
+    lines = src.splitlines()
+    return "\n".join(lines[: node.lineno - 1] + lines[node.end_lineno :]) + "\n"
 
 
 def scrub(src: str, leaky: Callable[[str], object] = LEAK_RE.search) -> str:
