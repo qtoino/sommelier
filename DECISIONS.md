@@ -17,3 +17,10 @@ One entry per decision: what, alternatives, why.
 13. **Line counts are derived, not stored.** `line_count()` is computed at stats time. Why: nothing to keep in sync.
 14. **Hand-written seed items are `source_type=synthetic`, `generator_model=hand-written`, `verification_status=unverifiable`.** Why: the spec only has mined/synthetic; these are not mined.
 15. **Flagging an item sets `status=flagged`, removing it from rotation** until it is cleaned up via export/import.
+16. **Fix-pattern regex requires a fix-like word; a bare `#123` is not enough.** Alt: spec's "issue refs" as a standalone pattern. Why: squash-merged repos put `(#123)` on every commit, so issue refs alone match everything. Issue refs are still used to fetch the linked issue for the judge.
+17. **Exactly one non-test `.py` file modified, and nothing outside function bodies changed** (imports excepted). Why: cheapest reliable way to get "one function meaningfully changed" without the judge needing more of the repo. Tests/docs may change in the same commit.
+18. **"Changed lines" = max(removed, added) in the function diff, 1..15.** A one-line edit counts as 1, not 2.
+19. **Extra filter: string/message-only changes are rejected** (AST equal after blanking string constants). These are almost never judgeable improvements.
+20. **Blobless partial clones (`--filter=blob:none`) in `.cache/repos/`.** Commit metadata is local; only the two versions of candidate files are fetched. Keeps pandas/django clones small.
+21. **The CLI runs as `python -m sommelier`.** Windows Application Control on this machine blocks the generated `sommelier.exe` launcher; `python -m` works everywhere.
+22. **BugsInPy contributes commit ids only** (it ships no license for its metadata; we never copy its code or tests). Each repo still goes through the license gate, which drops e.g. ansible (GPL), matplotlib (non-SPDX), tqdm (MPL), youtube-dl (Unlicense, not allowlisted).

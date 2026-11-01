@@ -26,11 +26,11 @@ Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
 - [x] Filters: category, source type, difficulty
 
 ## M5 Mining
-- [ ] Repo allowlist + license gate (GitHub API → LICENSE file fallback)
-- [ ] Candidates: BugsInPy commit list + fix-pattern regex
-- [ ] AST single-function extraction + filters
-- [ ] Leak scrubbing
-- [ ] LLM judge (claude -p, Pydantic-validated JSON), cache, budget cap, dry-run
+- [x] Repo allowlist + license gate (GitHub API → LICENSE file fallback)
+- [x] Candidates: BugsInPy commit list + fix-pattern regex
+- [x] AST single-function extraction + filters
+- [x] Leak scrubbing
+- [x] LLM judge (claude -p, Pydantic-validated JSON), cache, budget cap, dry-run
 - [ ] Run on 2–3 repos, then broaden
 
 ## M6 Synthetic

@@ -1,0 +1,31 @@
+# Repositories the miner may read. Each is still license-gated at mine time:
+# only MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0 and ISC pass.
+repos = [
+  "psf/requests",
+  "pallets/flask",
+  "pallets/click",
+  "pallets/werkzeug",
+  "pallets/jinja",
+  "encode/httpx",
+  "encode/starlette",
+  "fastapi/fastapi",
+  "pydantic/pydantic",
+  "python-attrs/attrs",
+  "Textualize/rich",
+  "sqlalchemy/sqlalchemy",
+  "django/django",
+  "pandas-dev/pandas",
+  "scikit-learn/scikit-learn",
+  # also in BugsInPy (confirmed bug-fix commits)
+  "psf/black",
+  "cookiecutter/cookiecutter",
+  "httpie/cli",
+  "keras-team/keras",
+  "spotify/luigi",
+  "sanic-org/sanic",
+  "scrapy/scrapy",
+  "explosion/spaCy",
+  "nvbn/thefuck",
+  "tornadoweb/tornado",
+  "cool-RR/PySnooper",
+]

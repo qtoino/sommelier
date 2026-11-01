@@ -1,14 +1,44 @@
 from collections import Counter
 from pathlib import Path
+from typing import Annotated, NoReturn
 
 import typer
 from sqlmodel import Session, select
 
 from sommelier.db import engine
 from sommelier.io import export_items, import_items, read_jsonl
+from sommelier.llm import LLM, BudgetExceeded, UsageLimitHit
+from sommelier.mine import mine_repo
 from sommelier.models import Item
 
 app = typer.Typer(help="Sommelier content pipeline. Never runs in the web request path.")
+
+
+def _stop(e: Exception) -> NoReturn:
+    typer.echo(f"STOPPED: {e}", err=True)
+    raise typer.Exit(2) from e
+
+
+@app.command("mine")
+def mine_cmd(
+    repo: Annotated[list[str], typer.Option(help="Repo from repos.toml; repeatable")],
+    limit: int = 5,
+    max_scan: int = 4000,
+    dry_run: bool = False,
+    max_calls: int | None = None,
+) -> None:
+    """Mine before/after pairs from bug-fix commits."""
+    llm = LLM(max_calls, dry_run)
+    total = 0
+    with Session(engine) as session:
+        for name in repo:
+            try:
+                total += mine_repo(session, llm, name, limit, max_scan)
+            except (BudgetExceeded, UsageLimitHit) as e:
+                _stop(e)
+            finally:
+                typer.echo(f"llm calls: {llm.calls} paid, {llm.cache_hits} cached")
+    typer.echo(f"added {total} mined items")
 
 
 @app.command("import")
