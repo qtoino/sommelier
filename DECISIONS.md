@@ -12,3 +12,8 @@ One entry per decision: what, alternatives, why.
 8. **~70 mined / ~30 synthetic, mining seeded from BugsInPy commit IDs + regex.** Alt: 60/40 regex-only. Why: real shipped bugs are the most valuable; BugsInPy commits are confirmed bug fixes. Only commit IDs are used; license gate still applies per repo.
 9. **API under `/api` prefix; Vite proxies `/api` in dev; FastAPI serves `frontend/dist` in Docker.** Why: one origin, no CORS.
 10. **Python package lives in `backend/sommelier`, single root `pyproject.toml`.** Why: one env for app + pipeline + tests.
+11. **Serving an item creates a pending Attempt row** (choice NULL) that stores `shown_left`. Alt: signed token, or trusting the client. Why: server keeps the mapping with no extra table; `time_to_answer_ms` is computed server-side from it.
+12. **Category and difficulty are hidden until reveal.** Seeing "security" before answering is a hint.
+13. **Line counts are derived, not stored.** `line_count()` is computed at stats time. Why: nothing to keep in sync.
+14. **Hand-written seed items are `source_type=synthetic`, `generator_model=hand-written`, `verification_status=unverifiable`.** Why: the spec only has mined/synthetic; these are not mined.
+15. **Flagging an item sets `status=flagged`, removing it from rotation** until it is cleaned up via export/import.

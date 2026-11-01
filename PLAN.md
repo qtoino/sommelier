@@ -9,11 +9,11 @@ Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
 - [x] ruff, mypy, pytest, oxlint + tsc
 
 ## M2 Data model + seed
-- [ ] SQLModel models: Item, Attempt, ItemFlag (+ lines_good/lines_bad)
-- [ ] Alembic initial migration
-- [ ] JSONL import/export + `fixtures/seed.jsonl` (~10 items, ≥1 tradeoff)
-- [ ] API: GET /api/items/next, POST /api/attempts, GET /api/items/{id}/reveal, POST /api/items/{id}/flag, GET /api/stats
-- [ ] Tests: randomization, server-side grading (incl. tradeoff rules), no-leak, reveal gating
+- [x] SQLModel models: Item, Attempt, ItemFlag (+ lines_good/lines_bad)
+- [x] Alembic initial migration
+- [x] JSONL import/export + `fixtures/seed.jsonl` (~10 items, ≥1 tradeoff)
+- [x] API: GET /api/items/next, POST /api/attempts, GET /api/items/{id}/reveal, POST /api/items/{id}/flag, GET /api/stats
+- [x] Tests: randomization, server-side grading (incl. tradeoff rules), no-leak, reveal gating
 
 ## M3 Core loop UI
 - [ ] Side-by-side read-only panes, choice/confidence/reason, keyboard 1/2/3/Enter/N
