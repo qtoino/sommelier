@@ -19,7 +19,10 @@ from pathlib import Path
 from typing import Any, Literal, TypeVar
 
 import httpx
+from dotenv import load_dotenv
 from pydantic import BaseModel, ValidationError
+
+load_dotenv()
 
 Role = Literal["judge", "generator", "critic"]
 T = TypeVar("T", bound=BaseModel)
