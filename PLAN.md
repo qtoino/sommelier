@@ -31,7 +31,7 @@ Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
 - [x] AST single-function extraction + filters
 - [x] Leak scrubbing
 - [x] LLM judge (claude -p, Pydantic-validated JSON), cache, budget cap, dry-run
-- [ ] Run on 2–3 repos, then broaden
+- [x] Run on 2–3 repos, then broaden (click pilot, then 24 repos)
 
 ## M6 Synthetic
 - [x] Seed topics per category
@@ -40,11 +40,11 @@ Status legend: [x] done, [ ] todo, [~] partial (see STATUS.md)
 - [x] Critic (OpenRouter DeepSeek) for unverifiable items
 
 ## M7 Dataset
-- [ ] 100+ active items, all 7 categories, ~10–15 tradeoffs, under quota guard
-- [ ] Spot-check, reject weak items
+- [x] 100+ active items (145), all 7 categories, 10 tradeoffs, under quota guard (peak 9% of 5h window)
+- [x] Spot-check, reject weak items (audit + ~30 read by hand, 4 rejected)
 
 ## M8 Polish
 - [x] Dockerfile + docker-compose
-- [ ] README
+- [x] README
 - [x] Playwright smoke test
-- [ ] STATUS.md
+- [x] STATUS.md

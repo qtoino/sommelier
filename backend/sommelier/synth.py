@@ -351,10 +351,12 @@ def generate(
     else:
         assert category, "category is required unless --tradeoff"
         topics = [(category, t) for t in TOPICS[category]]
-    # Untried topics first, so a topic the critic rejected isn't retried (and a kept one isn't
-    # generated twice) before the list is exhausted.
+    # Each topic is tried once: retrying a kept topic yields a near-duplicate item.
     attempted = set(json.loads(ATTEMPTED.read_text())) if ATTEMPTED.exists() else set()
-    topics = [t for t in topics if t[1] not in attempted] + [t for t in topics if t[1] in attempted]
+    topics = [t for t in topics if t[1] not in attempted]
+    if len(topics) < count:
+        log(f"  only {len(topics)} untried topics left; add more to TOPICS/TRADEOFF_TOPICS")
+        count = len(topics)
     offset = len(existing)  # only drives the shorter/equal shape alternation
     use_docker = docker_ready()
     if not use_docker:
@@ -365,7 +367,7 @@ def generate(
     known_good = {i.version_good.strip() for i in existing}
     added = 0
     for n in range(count):
-        cat, topic = topics[n % len(topics)]
+        cat, topic = topics[n]
         if topic not in attempted and not llm.dry_run:
             attempted.add(topic)
             ATTEMPTED.parent.mkdir(parents=True, exist_ok=True)
