@@ -127,3 +127,12 @@ def test_stats(client: TestClient, session: Session) -> None:
     assert stats["longer_baseline"] == 1.0
     assert stats["review_count"] == 1
     assert stats["inventory"] == {"correctness": 1}
+
+
+def test_review_count_skips_flagged(client: TestClient, session: Session) -> None:
+    item = one_item(session, is_tradeoff=True)
+    answer(client, "left")  # wrong
+    assert client.get("/api/stats").json()["review_count"] == 1
+    client.post(f"/api/items/{item.id}/flag", json={"note": "ambiguous"})
+    assert client.get("/api/stats").json()["review_count"] == 0
+    assert client.get("/api/items/next", params={"review": True}).status_code == 404
