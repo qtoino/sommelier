@@ -117,6 +117,15 @@ def test_unseen_first_then_review(client: TestClient, session: Session) -> None:
         assert served["item_id"] == first["item_id"]
 
 
+def test_exclude_avoids_repeat_unless_only_item(client: TestClient, session: Session) -> None:
+    one_item(session, id="a")
+    for _ in range(10):
+        assert client.get("/api/items/next", params={"exclude": "a"}).json()["item_id"] == "a"
+    one_item(session, id="b")
+    for _ in range(10):
+        assert client.get("/api/items/next", params={"exclude": "a"}).json()["item_id"] == "b"
+
+
 def test_stats(client: TestClient, session: Session) -> None:
     one_item(session, version_good="def f():\n    x = 1\n    return x\n")  # good is longer
     answer(client, "depends")
