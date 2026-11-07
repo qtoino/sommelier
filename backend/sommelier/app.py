@@ -211,13 +211,15 @@ def stats(session: SessionDep) -> dict[str, Any]:
         for attempt, item in reversed(rows[-20:])
     ]
     n = overall["n"]
+    # Match review mode: only active items can be served, so flagged ones aren't counted.
+    last = {item.id: (a, item) for a, item in rows}
     return {
         "overall": overall,
         **groups,
         "hedge_rate": hedges / n if n else 0.0,
         "longer_baseline": longer_score / n if n else 0.0,
         "review_count": sum(
-            1 for a in {a.item_id: a for a, _ in rows}.values() if not a.is_correct
+            1 for a, item in last.values() if not a.is_correct and item.status == "active"
         ),
         "inventory": inventory,
         "recent": recent,
